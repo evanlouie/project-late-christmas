@@ -11,24 +11,41 @@ const Document_1 = require("./Document");
 const Sitemap_1 = require("./Sitemap");
 const jsdom = require("jsdom");
 class SitemapIndex extends Document_1.DOMDocument {
-    getSitemaps() {
+    getSitemaps(shouldSave = true) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.body = yield this.fetch();
-            this.writeToDB(); // do not await
-            const window = jsdom.jsdom(this.body).defaultView;
-            const document = window.document;
-            // <sitemap>
-            const sitemaps = Array.from(document.querySelectorAll("sitemap")).map((sitemapNode) => {
-                return {
-                    lastmod: sitemapNode.querySelector("lastmod").innerHTML,
-                    loc: sitemapNode.querySelector("loc").innerHTML,
-                };
-            });
-            // Insantiate Sitemaps
-            this.sitemaps = sitemaps.map((sitemap) => {
-                return new Sitemap_1.default(sitemap.loc, new Sitemap_1.SitemapOptions(this.db));
-            });
-            return this.sitemaps;
+            try {
+                this.body = yield this.fetch();
+                if (shouldSave) {
+                    this.writeToDB();
+                }
+                /** @TODO test cheerio for faster reads (is document object retrievable?) */
+                // const window = cheerio.load(this.body);
+                const window = jsdom.jsdom(this.body).defaultView;
+                const document = window.document;
+                // <sitemap>
+                const sitemaps = Array.from(document.querySelectorAll("sitemap"))
+                    .reduce((carry, sitemapNode) => {
+                    const lastmodNode = sitemapNode.querySelector("lastmod");
+                    const locNode = sitemapNode.querySelector("loc");
+                    if (lastmodNode !== null && locNode !== null) {
+                        const sitemap = {
+                            lastmod: lastmodNode.innerHTML,
+                            loc: locNode.innerHTML,
+                        };
+                        carry.push(sitemap);
+                    }
+                    return carry;
+                }, []);
+                // Insantiate Sitemaps
+                this.sitemaps = sitemaps.map((sitemap) => {
+                    return new Sitemap_1.default(sitemap.loc, new Sitemap_1.SitemapOptions());
+                });
+                return this.sitemaps;
+            }
+            catch (err) {
+                console.error(err);
+                return [];
+            }
         });
     }
 }

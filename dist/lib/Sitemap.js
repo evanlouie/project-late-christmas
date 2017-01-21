@@ -7,12 +7,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments)).next());
     });
 };
+const jsdom = require("jsdom");
 const Document_1 = require("./Document");
 const URL_1 = require("./URL");
-const jsdom = require("jsdom");
-class SitemapOptions extends Document_1.DocumentOptions {
+class SitemapOptions {
     constructor() {
-        super(...arguments);
         this.lastmod = null;
         this.changefreq = null;
         this.priority = null;
@@ -21,31 +20,43 @@ class SitemapOptions extends Document_1.DocumentOptions {
 exports.SitemapOptions = SitemapOptions;
 class Sitemap extends Document_1.DOMDocument {
     constructor(loc, options) {
-        super(loc, options);
+        super(loc);
         this.lastmod = options.lastmod;
         this.changefreq = options.changefreq;
         this.priority = options.priority;
     }
-    getUrls() {
+    getUrls(shouldSave = true) {
         return __awaiter(this, void 0, void 0, function* () {
-            this.body = yield this.fetch();
-            yield this.writeToDB();
-            const window = jsdom.jsdom(this.body).defaultView;
-            const document = window.document;
-            const urlNodes = Array.from(document.querySelectorAll("url"));
-            this.urls = urlNodes.map((urlNode) => {
-                const loc = urlNode.querySelector("loc").innerHTML;
-                const options = new URL_1.URLOptions(this.db);
-                Array.from(urlNode.children).forEach((child) => {
-                    const key = child.tagName;
-                    const value = child.innerHTML;
-                    if (Object.keys(options).indexOf(key) > -1) {
-                        options[key] = value;
+            try {
+                this.body = yield this.fetch();
+                if (shouldSave) {
+                    this.writeToDB();
+                }
+                const window = jsdom.jsdom(this.body).defaultView;
+                const document = window.document;
+                const urlNodes = Array.from(document.querySelectorAll("url"));
+                this.urls = urlNodes.reduce((carry, urlNode) => {
+                    const locNode = urlNode.querySelector("loc");
+                    if (locNode !== null) {
+                        const loc = locNode.innerHTML;
+                        const options = new URL_1.URLOptions();
+                        Array.from(urlNode.children).forEach((child) => {
+                            const key = child["tagName"];
+                            const value = child["innerHTML"];
+                            if (Object.keys(options).indexOf(key) > -1) {
+                                options[key] = value;
+                            }
+                        });
+                        carry.push(new URL_1.default(loc, options));
                     }
-                });
-                return new URL_1.default(loc, options);
-            });
-            return this.urls;
+                    return carry;
+                }, []);
+                return this.urls;
+            }
+            catch (err) {
+                console.error(err);
+                return [];
+            }
         });
     }
 }
