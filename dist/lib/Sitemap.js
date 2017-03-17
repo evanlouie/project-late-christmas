@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 const jsdom = require("jsdom");
 const Document_1 = require("./Document");
-const URL_1 = require("./URL");
+const SitemapURL_1 = require("./SitemapURL");
 class SitemapOptions {
     constructor() {
         this.lastmod = null;
@@ -39,15 +39,15 @@ class Sitemap extends Document_1.DOMDocument {
                     const locNode = urlNode.querySelector("loc");
                     if (locNode !== null) {
                         const loc = locNode.innerHTML;
-                        const options = new URL_1.URLOptions();
+                        const options = new SitemapURL_1.URLOptions();
                         Array.from(urlNode.children).forEach((child) => {
-                            const key = child["tagName"];
-                            const value = child["innerHTML"];
+                            const key = child.tagName;
+                            const value = child.value;
                             if (Object.keys(options).indexOf(key) > -1) {
                                 options[key] = value;
                             }
                         });
-                        carry.push(new URL_1.default(loc, options));
+                        carry.push(new SitemapURL_1.default(loc, options));
                     }
                     return carry;
                 }, []);

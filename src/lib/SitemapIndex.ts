@@ -1,10 +1,27 @@
+import * as jsdom from "jsdom";
 import { DOMDocument } from "./Document";
 import Sitemap, { SitemapOptions } from "./Sitemap";
-import * as jsdom from "jsdom";
 
 export default class SitemapIndex extends DOMDocument {
 
     private sitemaps: Sitemap[];
+
+    // public async fetch(): Promise<string> {
+    //     console.log(`[GET]: ${this.loc}`);
+    //     return fetch(this.loc).then((response) => {
+    //         console.log(`[${response.status}]: ${this.loc}`);
+    //         if (response.status >= 400) {
+    //             console.error(`[DIE]: ${this.loc}`);
+    //             return response.text();
+    //         } else {
+    //             return response.text();
+    //         }
+    //     }).catch((err) => {
+    //         console.error(`Failed to fetch ${this.loc}`);
+    //         console.error(err);
+    //         return err;
+    //     });
+    // }
 
     public async getSitemaps(shouldSave: boolean = true): Promise<Sitemap[]> {
         try {

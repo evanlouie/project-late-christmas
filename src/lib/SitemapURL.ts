@@ -6,7 +6,7 @@ export class URLOptions {
     public priority: number | null;
 }
 
-export default class URL extends DOMDocument {
+export default class SitemapURL extends DOMDocument {
 
     public loc: string;
     public lastmod: string | null;
@@ -22,10 +22,16 @@ export default class URL extends DOMDocument {
     }
 
     public async getContent(shouldSave: boolean = true): Promise<string> {
-        this.body = await this.fetch();
-        if (shouldSave) {
-            this.writeToDB();
+        try {
+            this.body = await this.fetch();
+            if (shouldSave) {
+                this.writeToDB();
+            }
+        } catch (err) {
+            // write will fail, log error
+            console.error(err);
         }
+
         return this.body;
     }
 }

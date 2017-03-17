@@ -7,10 +7,26 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments)).next());
     });
 };
+const jsdom = require("jsdom");
 const Document_1 = require("./Document");
 const Sitemap_1 = require("./Sitemap");
-const jsdom = require("jsdom");
 class SitemapIndex extends Document_1.DOMDocument {
+    // public async fetch(): Promise<string> {
+    //     console.log(`[GET]: ${this.loc}`);
+    //     return fetch(this.loc).then((response) => {
+    //         console.log(`[${response.status}]: ${this.loc}`);
+    //         if (response.status >= 400) {
+    //             console.error(`[DIE]: ${this.loc}`);
+    //             return response.text();
+    //         } else {
+    //             return response.text();
+    //         }
+    //     }).catch((err) => {
+    //         console.error(`Failed to fetch ${this.loc}`);
+    //         console.error(err);
+    //         return err;
+    //     });
+    // }
     getSitemaps(shouldSave = true) {
         return __awaiter(this, void 0, void 0, function* () {
             try {

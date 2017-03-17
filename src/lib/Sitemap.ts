@@ -1,7 +1,7 @@
 import * as cheerio from "cheerio";
 import * as jsdom from "jsdom";
 import { ChangeFrequency, DOMDocument } from "./Document";
-import URL, { URLOptions } from "./URL";
+import SitemapURL, { URLOptions } from "./SitemapURL";
 
 export class SitemapOptions {
     public lastmod: string | null = null;
@@ -15,7 +15,7 @@ export default class Sitemap extends DOMDocument {
     public lastmod: string | null;
     public changefreq: ChangeFrequency | null;
     public priority: number | null;
-    private urls: URL[];
+    private urls: SitemapURL[];
 
     public constructor(loc: string, options: SitemapOptions) {
         super(loc);
@@ -24,7 +24,7 @@ export default class Sitemap extends DOMDocument {
         this.priority = options.priority;
     }
 
-    public async getUrls(shouldSave: boolean = true): Promise<URL[]> {
+    public async getUrls(shouldSave: boolean = true): Promise<SitemapURL[]> {
         try {
             this.body = await this.fetch();
 
@@ -34,21 +34,21 @@ export default class Sitemap extends DOMDocument {
             const window = jsdom.jsdom(this.body).defaultView;
             const document = window.document;
             const urlNodes = Array.from(document.querySelectorAll("url"));
-            this.urls = urlNodes.reduce((carry: URL[], urlNode) => {
+            this.urls = urlNodes.reduce((carry: SitemapURL[], urlNode) => {
                 const locNode = urlNode.querySelector("loc");
                 if (locNode !== null) {
                     const loc = locNode.innerHTML;
                     const options = new URLOptions();
 
-                    Array.from(urlNode.children).forEach((child) => {
-                        const key = child["tagName"];
-                        const value = child["innerHTML"];
+                    Array.from(urlNode.children).forEach((child: Element & { tagName: string, value: string }) => {
+                        const key = child.tagName;
+                        const value = child.value;
                         if (Object.keys(options).indexOf(key) > -1) {
                             options[key] = value;
                         }
                     });
 
-                    carry.push(new URL(loc, options));
+                    carry.push(new SitemapURL(loc, options));
                 }
 
                 return carry;

@@ -11,7 +11,7 @@ const Document_1 = require("./Document");
 class URLOptions {
 }
 exports.URLOptions = URLOptions;
-class URL extends Document_1.DOMDocument {
+class SitemapURL extends Document_1.DOMDocument {
     constructor(loc, options) {
         super(loc);
         this.loc = loc;
@@ -36,4 +36,4 @@ class URL extends Document_1.DOMDocument {
     }
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.default = URL;
+exports.default = SitemapURL;
