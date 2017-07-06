@@ -29,7 +29,7 @@ export default class Page {
             filename = regexMatch[2];
         }
         return [directory, filename];
-    };
+    }
 
     /**
      * [string, string] -> string
@@ -44,8 +44,8 @@ export default class Page {
      * [Url] -> boolean
      * Returns a booelan of whether or not a url has been previously scraped and saved
      */
-    public static isPreviouslyScraped(url: Url): boolean {
-        const dirAndFilename = Page.getDirAndFilenameFromURI(url.path || ``);
+    public static isPreviouslyScraped(targetUrl: Url): boolean {
+        const dirAndFilename = Page.getDirAndFilenameFromURI(targetUrl.path || ``);
         const writeOutPath = Page.getWriteOutPath(dirAndFilename);
 
         // return await new Promise<boolean>((resolve, reject) => {
@@ -97,11 +97,11 @@ export default class Page {
 
     public url: Url;
     public body: string;
-    public jsdom: jsdom.DocumentWithParentWindow;
+    // public jsdom: jsdom.DocumentWithParentWindow;
     public response: request.RequestResponse;
 
-    constructor(url: Url) {
-        this.url = url;
+    constructor(pageUrl: Url) {
+        this.url = pageUrl;
     }
 
     public async parseRelativeUrls(attributes: string[] = [`src`, `href`]): Promise<Url[]> {
@@ -109,7 +109,8 @@ export default class Page {
             if (!this.body) {
                 await this.get();
             }
-            const window = jsdom.jsdom(this.body, { url: this.url.href }).defaultView;
+            // const window = (new jsdom.JSDOM(this.body, { url: this.url.href })).defaultView;
+            const window = (new jsdom.JSDOM(this.body, { url: this.url.href })).window;
             const document = window.document;
 
             // PARSE SRC/HREF
@@ -134,8 +135,8 @@ export default class Page {
 
             // FILTER TO ONLY LOCAL/RELATIVE URLS
             const localUrlRegex = new RegExp(`${this.url.hostname}`, `gi`);
-            const localUrls = [...new Set([...urls].filter((url) => {
-                return (url.host || ``).match(localUrlRegex);
+            const localUrls = [...new Set([...urls].filter((localUrl) => {
+                return (localUrl.host || ``).match(localUrlRegex);
             }))];
 
             return localUrls;
@@ -151,7 +152,7 @@ export default class Page {
             request.get(uri, { encoding: null, maxRedirects: 8 }, (error, response, body) => {
                 if (error) {
                     reject(error);
-                } else if (response.statusCode >= 400) {
+                } else if (typeof response.statusCode !== "undefined" && response.statusCode >= 400) {
                     console.log(`[${response.statusCode}]: ${this.url.href}`);
                     reject(`[${response.statusCode}]: ${response.statusMessage}`);
                 } else {
@@ -183,7 +184,11 @@ export default class Page {
             }
 
             // only match for binary and utf8 encodings
-            const contentType: string = this.response.headers[`content-type`] || ``;
+            const responseType = this.response.headers[`content-type`];
+            let contentType = "";
+            if (responseType === "string") {
+                contentType = responseType;
+            }
             const encoding = contentType.match(/text/gi) ? `utf8` : `binary`;
             const textTypeRegex = /(html|xml|json)/gi;
             const dirAndFilename = Page.getDirAndFilenameFromURI(this.url.path || ``);

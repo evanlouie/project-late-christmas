@@ -2,19 +2,20 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("graceful-fs");
 const jsdom = require("jsdom");
 const mkdirp = require("mkdirp");
 const request = require("request");
 const url = require("url");
 class Page {
-    constructor(url) {
-        this.url = url;
+    constructor(pageUrl) {
+        this.url = pageUrl;
     }
     //////// START LIB CODE ////////
     /**
@@ -33,7 +34,6 @@ class Page {
         }
         return [directory, filename];
     }
-    ;
     /**
      * [string, string] -> string
      * Returns the write out path for a given (dir, filename) tuple
@@ -46,8 +46,8 @@ class Page {
      * [Url] -> boolean
      * Returns a booelan of whether or not a url has been previously scraped and saved
      */
-    static isPreviouslyScraped(url) {
-        const dirAndFilename = Page.getDirAndFilenameFromURI(url.path || ``);
+    static isPreviouslyScraped(targetUrl) {
+        const dirAndFilename = Page.getDirAndFilenameFromURI(targetUrl.path || ``);
         const writeOutPath = Page.getWriteOutPath(dirAndFilename);
         // return await new Promise<boolean>((resolve, reject) => {
         //     fs.access(writeOutPath, fs.constants.F_OK, (err) => {
@@ -71,6 +71,21 @@ class Page {
                 const page = new Page(root);
                 const body = yield page.get();
                 return [];
+                // const localUrls = await page.parseRelativeUrls([`src`, `href`]);
+                // const assetUrls = localUrls.filter((url) => {
+                //     return (url.path || ``).match(/\.(css|js|jpe?g|gif|png|svg|webm)/gi);
+                // }).filter((url) => {
+                //     // filter out /var/ folder
+                //     return !(url.path || ``).match(/\/var\//gi);
+                // });
+                // const unscrapedAssetUrls = assetUrls.filter((url) => {
+                //     return Page.isPreviouslyScraped(url) === false;
+                // });
+                // const assetPromises: Array<Promise<string>> = unscrapedAssetUrls.map((url) => {
+                //     const assetPage = new Page(url);
+                //     return assetPage.get();
+                // };
+                // return await Promise.all(assetPromises);
             }
             catch (err) {
                 console.error(err);
@@ -84,7 +99,8 @@ class Page {
                 if (!this.body) {
                     yield this.get();
                 }
-                const window = jsdom.jsdom(this.body, { url: this.url.href }).defaultView;
+                // const window = (new jsdom.JSDOM(this.body, { url: this.url.href })).defaultView;
+                const window = (new jsdom.JSDOM(this.body, { url: this.url.href })).window;
                 const document = window.document;
                 // PARSE SRC/HREF
                 const selector = attributes.map((attribute) => `[${attribute}]`).join(`,`);
@@ -105,8 +121,8 @@ class Page {
                 window.close();
                 // FILTER TO ONLY LOCAL/RELATIVE URLS
                 const localUrlRegex = new RegExp(`${this.url.hostname}`, `gi`);
-                const localUrls = [...new Set([...urls].filter((url) => {
-                        return (url.host || ``).match(localUrlRegex);
+                const localUrls = [...new Set([...urls].filter((localUrl) => {
+                        return (localUrl.host || ``).match(localUrlRegex);
                     }))];
                 return localUrls;
             }
@@ -124,7 +140,7 @@ class Page {
                     if (error) {
                         reject(error);
                     }
-                    else if (response.statusCode >= 400) {
+                    else if (typeof response.statusCode !== "undefined" && response.statusCode >= 400) {
                         console.log(`[${response.statusCode}]: ${this.url.href}`);
                         reject(`[${response.statusCode}]: ${response.statusMessage}`);
                     }
@@ -157,7 +173,11 @@ class Page {
                     }
                 }
                 // only match for binary and utf8 encodings
-                const contentType = this.response.headers[`content-type`] || ``;
+                const responseType = this.response.headers[`content-type`];
+                let contentType = "";
+                if (responseType === "string") {
+                    contentType = responseType;
+                }
                 const encoding = contentType.match(/text/gi) ? `utf8` : `binary`;
                 const textTypeRegex = /(html|xml|json)/gi;
                 const dirAndFilename = Page.getDirAndFilenameFromURI(this.url.path || ``);
@@ -221,5 +241,4 @@ class Page {
 }
 /** @var string writeOutDir - the directory pages will be written out to */
 Page.writeOutDir = process.cwd() + `/public`;
-Object.defineProperty(exports, "__esModule", { value: true });
 exports.default = Page;

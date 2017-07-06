@@ -2,16 +2,18 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const fs = require("graceful-fs");
 const fetch = require("isomorphic-fetch");
 const mkdirp = require("mkdirp");
 const yargs = require("yargs");
 const Page_1 = require("./Page");
+var ChangeFrequency;
 (function (ChangeFrequency) {
     ChangeFrequency[ChangeFrequency["always"] = 0] = "always";
     ChangeFrequency[ChangeFrequency["hourly"] = 1] = "hourly";
@@ -20,17 +22,8 @@ const Page_1 = require("./Page");
     ChangeFrequency[ChangeFrequency["monthly"] = 4] = "monthly";
     ChangeFrequency[ChangeFrequency["yearly"] = 5] = "yearly";
     ChangeFrequency[ChangeFrequency["never"] = 6] = "never";
-})(exports.ChangeFrequency || (exports.ChangeFrequency = {}));
-var ChangeFrequency = exports.ChangeFrequency;
+})(ChangeFrequency = exports.ChangeFrequency || (exports.ChangeFrequency = {}));
 class Document {
-    constructor(url) {
-        this.loc = url;
-        // match for both hootsuite.com and hootops.com
-        const uriMatches = this.loc.match(/^(.*hootsuite|.*hootops).com(:\d+)?\/(.*)/);
-        if (uriMatches !== null) {
-            this.uri = uriMatches[3];
-        }
-    }
     /**
      * string -> (string, string)
      * Returns a tuple of [directory, filename]
@@ -47,7 +40,6 @@ class Document {
         }
         return [directory, filename];
     }
-    ;
     /**
      * [string, string] -> string
      * Returns the write out path for a given (dir, filename) tuple
@@ -55,6 +47,14 @@ class Document {
     static getWriteOutPath(dirAndFilename) {
         const writeOutPath = Page_1.default.writeOutDir + `/` + dirAndFilename[0] + dirAndFilename[1];
         return writeOutPath;
+    }
+    constructor(url) {
+        this.loc = url;
+        // match for both hootsuite.com and hootops.com
+        const uriMatches = this.loc.match(/^(.*hootsuite|.*hootops).com(:\d+)?\/(.*)/);
+        if (uriMatches !== null) {
+            this.uri = uriMatches[3];
+        }
     }
     fetch() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -159,7 +159,6 @@ class Document {
             return promise;
         });
     }
-    ;
 }
 exports.Document = Document;
 class DOMDocument extends Document {

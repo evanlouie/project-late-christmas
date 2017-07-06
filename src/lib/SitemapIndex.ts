@@ -32,7 +32,7 @@ export default class SitemapIndex extends DOMDocument {
 
             /** @TODO test cheerio for faster reads (is document object retrievable?) */
             // const window = cheerio.load(this.body);
-            const window = jsdom.jsdom(this.body).defaultView;
+            const window = (new jsdom.JSDOM(this.body)).window;
             const document = window.document;
 
             // <sitemap>

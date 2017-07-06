@@ -6,6 +6,9 @@
         ],
         "max-classes-per-file": [
             false
+        ],
+        "no-unused-expression": [
+            false
         ]
     }
 }

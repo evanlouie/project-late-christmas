@@ -40,7 +40,7 @@ export abstract class Document implements IDocument {
             filename = regexMatch[2];
         }
         return [directory, filename];
-    };
+    }
 
     /**
      * [string, string] -> string
@@ -164,7 +164,7 @@ export abstract class Document implements IDocument {
         });
 
         return promise;
-    };
+    }
 }
 
 export abstract class DOMDocument extends Document { }

@@ -31,7 +31,8 @@ export default class Sitemap extends DOMDocument {
             if (shouldSave) {
                 this.writeToDB();
             }
-            const window = jsdom.jsdom(this.body).defaultView;
+            // const window = jsdom.jsdom(this.body).defaultView;
+            const window = (new jsdom.JSDOM(this.body)).window;
             const document = window.document;
             const urlNodes = Array.from(document.querySelectorAll("url"));
             this.urls = urlNodes.reduce((carry: SitemapURL[], urlNode) => {

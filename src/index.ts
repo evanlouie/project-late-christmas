@@ -103,7 +103,7 @@ async function scrape(
     }
 
     return successfullyFetched;
-};
+}
 
 async function getAssetsForAllScrapedPages(): Promise<Set<string>> {
     const hrefs: Set<string> = new Set();
@@ -327,7 +327,7 @@ yargs
                         }
                     });
                 }).then(([response, body]) => {
-                    const contentType: string = response.headers["content-type"] || "";
+                    const contentType: string = (response.headers["content-type"] || "").toString();
                     const encoding = contentType.match(/text/gi) ? "utf8" : "binary";
                     const urlObject = Url.parse(response.url || "");
                     const path = (response.request as request.Options & { path: string }).path;
@@ -336,7 +336,7 @@ yargs
                     mkdirp(folderPath, (err) => {
                         if (err) {
                             console.error(err);
-                        } else if (response.statusCode >= 400) {
+                        } else if ((response.statusCode || -1) >= 400) {
                             console.error(`[${response.statusCode}]: ${response.statusMessage}`);
                         } else {
                             const filename = folderPath + dirAndFilename[1];

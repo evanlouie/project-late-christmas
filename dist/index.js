@@ -2,11 +2,12 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator.throw(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments)).next());
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+Object.defineProperty(exports, "__esModule", { value: true });
 const glob = require("glob");
 const fs = require("graceful-fs");
 const http = require("http");
@@ -90,7 +91,6 @@ function scrape(sitemapURL, hosts, maxSockets, save = true) {
         return successfullyFetched;
     });
 }
-;
 function getAssetsForAllScrapedPages() {
     return __awaiter(this, void 0, void 0, function* () {
         const hrefs = new Set();
@@ -299,7 +299,7 @@ yargs
                     }
                 });
             }).then(([response, body]) => {
-                const contentType = response.headers["content-type"] || "";
+                const contentType = (response.headers["content-type"] || "").toString();
                 const encoding = contentType.match(/text/gi) ? "utf8" : "binary";
                 const urlObject = Url.parse(response.url || "");
                 const path = response.request.path;
@@ -309,7 +309,7 @@ yargs
                     if (err) {
                         console.error(err);
                     }
-                    else if (response.statusCode >= 400) {
+                    else if ((response.statusCode || -1) >= 400) {
                         console.error(`[${response.statusCode}]: ${response.statusMessage}`);
                     }
                     else {
